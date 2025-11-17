@@ -13,6 +13,10 @@ export default function HomeScreen({ navigation }) {
       description: 'تطبيق احترافي لتوقع نوع الجنين بناءً على نمط العائلة',
       genderPrediction: 'توقع نوع الجنين',
       genderDesc: 'طريقة تقليدية معتمدة على نمط العائلة',
+      geneticDiseases: 'الأمراض الوراثية',
+      geneticDesc: 'تقييم احتمالية الأمراض الوراثية',
+      traits: 'الصفات الوراثية',
+      traitsDesc: 'توقع صفات الطفل الجسدية',
       language: 'اللغة',
     },
     en: {
@@ -21,6 +25,10 @@ export default function HomeScreen({ navigation }) {
       description: 'Professional app for predicting baby gender based on family patterns',
       genderPrediction: 'Gender Prediction',
       genderDesc: 'Traditional method based on family pattern',
+      geneticDiseases: 'Genetic Diseases',
+      geneticDesc: 'Assess genetic disease probability',
+      traits: 'Genetic Traits',
+      traitsDesc: 'Predict child physical traits',
       language: 'Language',
     },
   };
@@ -76,6 +84,56 @@ export default function HomeScreen({ navigation }) {
               </View>
               <Text style={[styles.cardTitle, language === 'ar' && styles.rtl]}>{t.genderPrediction}</Text>
               <Text style={[styles.cardDescription, language === 'ar' && styles.rtl]}>{t.genderDesc}</Text>
+              <View style={styles.cardArrow}>
+                <Ionicons 
+                  name={language === 'ar' ? 'arrow-back' : 'arrow-forward'} 
+                  size={24} 
+                  color="white" 
+                />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('GeneticDiseases', { language })}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={['#87CEEB', '#4682B4']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.card}
+            >
+              <View style={styles.cardIcon}>
+                <Ionicons name="medical" size={40} color="white" />
+              </View>
+              <Text style={[styles.cardTitle, language === 'ar' && styles.rtl]}>{t.geneticDiseases}</Text>
+              <Text style={[styles.cardDescription, language === 'ar' && styles.rtl]}>{t.geneticDesc}</Text>
+              <View style={styles.cardArrow}>
+                <Ionicons 
+                  name={language === 'ar' ? 'arrow-back' : 'arrow-forward'} 
+                  size={24} 
+                  color="white" 
+                />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Traits', { language })}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={['#DDA0DD', '#BA55D3']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.card}
+            >
+              <View style={styles.cardIcon}>
+                <Ionicons name="color-palette" size={40} color="white" />
+              </View>
+              <Text style={[styles.cardTitle, language === 'ar' && styles.rtl]}>{t.traits}</Text>
+              <Text style={[styles.cardDescription, language === 'ar' && styles.rtl]}>{t.traitsDesc}</Text>
               <View style={styles.cardArrow}>
                 <Ionicons 
                   name={language === 'ar' ? 'arrow-back' : 'arrow-forward'} 
