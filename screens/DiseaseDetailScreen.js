@@ -206,15 +206,27 @@ export default function DiseaseDetailScreen({ route, navigation }) {
         {diseaseData[disease.id].sources && (
           <View style={[styles.card, styles.sourcesCard]}>
             <Text style={[styles.cardTitle, language === 'ar' && styles.rtl]}>{t.sources}</Text>
+            
             <TouchableOpacity
-              style={styles.sourceButton}
-              onPress={() => Linking.openURL(diseaseData[disease.id].sources[language])}
+              style={[styles.sourceButton, styles.arabicButton]}
+              onPress={() => Linking.openURL(diseaseData[disease.id].sources.ar)}
             >
-              <Ionicons name="link" size={20} color="#667EEA" />
-              <Text style={[styles.sourceButtonText, language === 'ar' && styles.rtl]}>
-                {t.viewSource} ({language === 'ar' ? 'وزارة الصحة' : 'CDC / MOH'})
+              <Ionicons name="link" size={20} color="#2E7D32" />
+              <Text style={[styles.sourceButtonText, styles.arabicText]}>
+                المصدر العربي (وزارة الصحة)
               </Text>
-              <Ionicons name="open-outline" size={18} color="#667EEA" />
+              <Ionicons name="open-outline" size={18} color="#2E7D32" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.sourceButton, styles.englishButton]}
+              onPress={() => Linking.openURL(diseaseData[disease.id].sources.en)}
+            >
+              <Ionicons name="link" size={20} color="#1565C0" />
+              <Text style={[styles.sourceButtonText, styles.englishText]}>
+                English Source (CDC / MOH)
+              </Text>
+              <Ionicons name="open-outline" size={18} color="#1565C0" />
             </TouchableOpacity>
           </View>
         )}
@@ -289,11 +301,24 @@ const styles = StyleSheet.create({
     marginTop: 8,
     gap: 8,
   },
+  arabicButton: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#2E7D32',
+  },
+  englishButton: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#1565C0',
+  },
   sourceButtonText: {
     flex: 1,
     fontSize: 14,
-    color: '#667EEA',
     fontWeight: '600',
+  },
+  arabicText: {
+    color: '#2E7D32',
+  },
+  englishText: {
+    color: '#1565C0',
   },
   rtl: {
     writingDirection: 'rtl',
