@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,6 +31,10 @@ export default function DiseaseDetailScreen({ route, navigation }) {
         riskBoth: 'If both parents are carriers: 25% affected, 50% carrier, 25% healthy',
         notes: 'Premarital screening recommended. Treatment includes regular blood transfusions.',
       },
+      sources: {
+        ar: 'https://www.moh.gov.sa/HealthAwareness/EducationalContent/Diseases/hematology/Pages/004.aspx',
+        en: 'https://www.cdc.gov/ncbddd/thalassemia/',
+      },
     },
     sickle_cell: {
       ar: {
@@ -48,6 +53,10 @@ export default function DiseaseDetailScreen({ route, navigation }) {
         riskBoth: 'If both parents are carriers: 25% affected, 50% carrier, 25% healthy',
         notes: 'Causes severe pain episodes. Treatment includes medication, pain relief, sometimes transfusions.',
       },
+      sources: {
+        ar: 'https://www.moh.gov.sa/HealthAwareness/EducationalContent/Diseases/hematology/Pages/001.aspx',
+        en: 'https://www.cdc.gov/sickle-cell/',
+      },
     },
     hemophilia: {
       ar: {
@@ -65,6 +74,10 @@ export default function DiseaseDetailScreen({ route, navigation }) {
         riskOne: 'If mother is carrier: 50% of males affected, 50% of females carriers',
         riskBoth: 'If father affected and mother carrier: higher risk',
         notes: 'Requires regular clotting factor injections. Avoiding injuries is crucial.',
+      },
+      sources: {
+        ar: 'https://www.moh.gov.sa/HealthAwareness/EducationalContent/Diseases/hematology/Pages/005.aspx',
+        en: 'https://www.cdc.gov/hemophilia/',
       },
     },
     cystic_fibrosis: {
@@ -132,6 +145,8 @@ export default function DiseaseDetailScreen({ route, navigation }) {
       inheritance: 'نوع الوراثة',
       risk: 'نسبة إصابة الطفل',
       notes: 'ملاحظات',
+      sources: 'المصادر الطبية الموثوقة',
+      viewSource: 'زيارة المصدر',
     },
     en: {
       back: 'Back',
@@ -139,6 +154,8 @@ export default function DiseaseDetailScreen({ route, navigation }) {
       inheritance: 'Inheritance Type',
       risk: 'Child Risk Percentage',
       notes: 'Notes',
+      sources: 'Trusted Medical Sources',
+      viewSource: 'Visit Source',
     },
   };
 
@@ -185,6 +202,22 @@ export default function DiseaseDetailScreen({ route, navigation }) {
           <Text style={[styles.cardTitle, language === 'ar' && styles.rtl]}>{t.notes}</Text>
           <Text style={[styles.cardText, language === 'ar' && styles.rtl]}>{data.notes}</Text>
         </View>
+
+        {diseaseData[disease.id].sources && (
+          <View style={[styles.card, styles.sourcesCard]}>
+            <Text style={[styles.cardTitle, language === 'ar' && styles.rtl]}>{t.sources}</Text>
+            <TouchableOpacity
+              style={styles.sourceButton}
+              onPress={() => Linking.openURL(diseaseData[disease.id].sources[language])}
+            >
+              <Ionicons name="link" size={20} color="#667EEA" />
+              <Text style={[styles.sourceButtonText, language === 'ar' && styles.rtl]}>
+                {t.viewSource} ({language === 'ar' ? 'وزارة الصحة' : 'CDC / MOH'})
+              </Text>
+              <Ionicons name="open-outline" size={18} color="#667EEA" />
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </LinearGradient>
   );
@@ -233,6 +266,9 @@ const styles = StyleSheet.create({
   notesCard: {
     backgroundColor: '#FFF9E6',
   },
+  sourcesCard: {
+    backgroundColor: '#E8F5E9',
+  },
   cardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -243,6 +279,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#555',
     lineHeight: 22,
+  },
+  sourceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    gap: 8,
+  },
+  sourceButtonText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#667EEA',
+    fontWeight: '600',
   },
   rtl: {
     writingDirection: 'rtl',
