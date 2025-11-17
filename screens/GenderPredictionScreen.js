@@ -128,7 +128,7 @@ export default function GenderPredictionScreen({ route, navigation }) {
       });
 
       setResult(response.data);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Prediction error:', error);
       Alert.alert(
         language === 'ar' ? 'خطأ' : 'Error',
