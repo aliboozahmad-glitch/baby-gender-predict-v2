@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function HomeScreen({ navigation }: any) {
-  const [language, setLanguage] = useState<'ar' | 'en'>('ar');
+export default function HomeScreen({ navigation }) {
+  const [language, setLanguage] = useState('ar');
 
   const translations = {
     ar: {

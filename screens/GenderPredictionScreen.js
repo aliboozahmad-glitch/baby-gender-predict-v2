@@ -15,14 +15,12 @@ import Constants from 'expo-constants';
 
 const BACKEND_URL = Constants.expoConfig?.extra?.backendUrl || process.env.EXPO_PUBLIC_BACKEND_URL;
 
-type Gender = 'male' | 'female';
-
-export default function GenderPredictionScreen({ route, navigation }: any) {
+export default function GenderPredictionScreen({ route, navigation }) {
   const language = route?.params?.language || 'ar';
 
-  const [wifeFamily, setWifeFamily] = useState<Gender[]>(['male']);
-  const [husbandFamily, setHusbandFamily] = useState<Gender[]>(['male']);
-  const [childNumber, setChildNumber] = useState<1 | 2>(1);
+  const [wifeFamily, setWifeFamily] = useState(['male']);
+  const [husbandFamily, setHusbandFamily] = useState(['male']);
+  const [childNumber, setChildNumber] = useState(1);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
 
