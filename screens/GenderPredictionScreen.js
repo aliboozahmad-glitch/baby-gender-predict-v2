@@ -22,7 +22,7 @@ export default function GenderPredictionScreen({ route, navigation }) {
   const [husbandFamily, setHusbandFamily] = useState(['male']);
   const [childNumber, setChildNumber] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState(null);
 
   const translations = {
     ar: {
