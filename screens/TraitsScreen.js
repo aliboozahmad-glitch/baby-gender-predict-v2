@@ -5,435 +5,389 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
-  Alert,
+  TextInput,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
-import Constants from 'expo-constants';
-
-const BACKEND_URL = Constants.expoConfig?.extra?.backendUrl || process.env.EXPO_PUBLIC_BACKEND_URL;
+import { Picker } from '@react-native-picker/picker';
+import GeneticCalculator from '../utils/GeneticCalculator';
 
 export default function TraitsScreen({ route, navigation }) {
   const language = route?.params?.language || 'ar';
 
-  const [motherTraits, setMotherTraits] = useState({
-    hair_color: 'black',
-    eye_color: 'brown',
-    skin_tone: 'medium',
-    height: 'average',
-  });
+  // Mother traits
+  const [motherEye, setMotherEye] = useState('Brown');
+  const [motherHair, setMotherHair] = useState('Black');
+  const [motherSkin, setMotherSkin] = useState('Medium');
+  const [motherHeight, setMotherHeight] = useState('165');
 
-  const [fatherTraits, setFatherTraits] = useState({
-    hair_color: 'black',
-    eye_color: 'brown',
-    skin_tone: 'medium',
-    height: 'average',
-  });
+  // Father traits
+  const [fatherEye, setFatherEye] = useState('Brown');
+  const [fatherHair, setFatherHair] = useState('Black');
+  const [fatherSkin, setFatherSkin] = useState('Medium');
+  const [fatherHeight, setFatherHeight] = useState('175');
 
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-
-  const traitOptions = {
-    hair_color: [
-      { id: 'black', ar: 'أسود', en: 'Black' },
-      { id: 'brown', ar: 'بني', en: 'Brown' },
-      { id: 'blonde', ar: 'أشقر', en: 'Blonde' },
-      { id: 'red', ar: 'أحمر', en: 'Red' },
-    ],
-    eye_color: [
-      { id: 'brown', ar: 'بني', en: 'Brown' },
-      { id: 'blue', ar: 'أزرق', en: 'Blue' },
-      { id: 'green', ar: 'أخضر', en: 'Green' },
-      { id: 'hazel', ar: 'عسلي', en: 'Hazel' },
-    ],
-    skin_tone: [
-      { id: 'fair', ar: 'فاتح', en: 'Fair' },
-      { id: 'medium', ar: 'متوسط', en: 'Medium' },
-      { id: 'dark', ar: 'داكن', en: 'Dark' },
-    ],
-    height: [
-      { id: 'short', ar: 'قصير', en: 'Short' },
-      { id: 'average', ar: 'متوسط', en: 'Average' },
-      { id: 'tall', ar: 'طويل', en: 'Tall' },
-    ],
-  };
+  // Child gender
+  const [childGender, setChildGender] = useState('male');
 
   const translations = {
     ar: {
       title: 'الصفات الوراثية',
-      subtitle: 'توقع صفات الطفل',
+      subtitle: 'توقع صفات الطفل بناءً على بيانات علمية',
       motherTraits: 'صفات الأم',
       fatherTraits: 'صفات الأب',
+      eyeColor: 'لون العين',
       hairColor: 'لون الشعر',
-      eyeColor: 'لون العيون',
       skinTone: 'لون البشرة',
-      height: 'الطول',
-      calculate: 'احسب النتيجة',
+      height: 'الطول (سم)',
+      childGenderLabel: 'جنس الطفل المتوقع',
+      male: 'ذكر',
+      female: 'أنثى',
+      calculate: 'عرض النتيجة',
       back: 'رجوع',
-      predictedTraits: 'الصفات المتوقعة',
-      newPrediction: 'توقع جديد',
-      note: 'ملاحظة: هذا التوقع تقريبي - الوراثة معقدة وقد تختلف النتائج',
+      eyes: { Brown: 'بني', Hazel: 'عسلي', Green: 'أخضر', Blue: 'أزرق' },
+      hairs: { Black: 'أسود', Brown: 'بني', Blonde: 'أشقر', Red: 'أحمر' },
+      skins: { Light: 'فاتحة', Medium: 'متوسطة', Dark: 'غامقة' },
     },
     en: {
       title: 'Genetic Traits',
-      subtitle: 'Predict Child Traits',
+      subtitle: 'Predict child traits based on scientific data',
       motherTraits: "Mother's Traits",
       fatherTraits: "Father's Traits",
-      hairColor: 'Hair Color',
       eyeColor: 'Eye Color',
+      hairColor: 'Hair Color',
       skinTone: 'Skin Tone',
-      height: 'Height',
-      calculate: 'Calculate Result',
+      height: 'Height (cm)',
+      childGenderLabel: 'Expected Child Gender',
+      male: 'Male',
+      female: 'Female',
+      calculate: 'Show Result',
       back: 'Back',
-      predictedTraits: 'Predicted Traits',
-      newPrediction: 'New Prediction',
-      note: 'Note: This prediction is approximate - genetics are complex and results may vary',
+      eyes: { Brown: 'Brown', Hazel: 'Hazel', Green: 'Green', Blue: 'Blue' },
+      hairs: { Black: 'Black', Brown: 'Brown', Blonde: 'Blonde', Red: 'Red' },
+      skins: { Light: 'Light', Medium: 'Medium', Dark: 'Dark' },
     },
   };
 
   const t = translations[language];
 
-  const updateMotherTrait = (trait, value) => {
-    setMotherTraits({ ...motherTraits, [trait]: value });
-  };
+  const eyeOptions = ['Brown', 'Hazel', 'Green', 'Blue'];
+  const hairOptions = ['Black', 'Brown', 'Blonde', 'Red'];
+  const skinOptions = ['Light', 'Medium', 'Dark'];
 
-  const updateFatherTrait = (trait, value) => {
-    setFatherTraits({ ...fatherTraits, [trait]: value });
-  };
+  const handleCalculate = () => {
+    const mHeight = parseInt(motherHeight) || 165;
+    const fHeight = parseInt(fatherHeight) || 175;
 
-  const handleCalculate = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${BACKEND_URL}/api/predict-traits`, {
-        mother_traits: motherTraits,
-        father_traits: fatherTraits,
-        language: language,
-      });
-
-      setResult(response.data);
-    } catch (error) {
-      console.error('Prediction error:', error);
-      Alert.alert(
-        language === 'ar' ? 'خطأ' : 'Error',
-        language === 'ar' ? 'حدث خطأ أثناء التوقع' : 'An error occurred during prediction'
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetForm = () => {
-    setResult(null);
-  };
-
-  if (result) {
-    return (
-      <LinearGradient colors={['#FFB6C1', '#DDA0DD', '#87CEEB']} style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons
-              name={language === 'ar' ? 'arrow-forward' : 'arrow-back'}
-              size={24}
-              color="white"
-            />
-          </TouchableOpacity>
-
-          <View style={styles.resultContainer}>
-            <Text style={[styles.resultTitle, language === 'ar' && styles.rtl]}>
-              {t.predictedTraits}
-            </Text>
-
-            <View style={styles.traitsGrid}>
-              <View style={styles.traitCard}>
-                <Ionicons name="color-palette" size={40} color="white" />
-                <Text style={[styles.traitLabel, language === 'ar' && styles.rtl]}>{t.hairColor}</Text>
-                <Text style={styles.traitValue}>
-                  {language === 'ar' 
-                    ? traitOptions.hair_color.find(o => o.id === result.predicted_traits.hair_color)?.ar
-                    : traitOptions.hair_color.find(o => o.id === result.predicted_traits.hair_color)?.en
-                  }
-                </Text>
-                <Text style={styles.percentage}>{result.percentages.hair}%</Text>
-              </View>
-
-              <View style={styles.traitCard}>
-                <Ionicons name="eye" size={40} color="white" />
-                <Text style={[styles.traitLabel, language === 'ar' && styles.rtl]}>{t.eyeColor}</Text>
-                <Text style={styles.traitValue}>
-                  {language === 'ar' 
-                    ? traitOptions.eye_color.find(o => o.id === result.predicted_traits.eye_color)?.ar
-                    : traitOptions.eye_color.find(o => o.id === result.predicted_traits.eye_color)?.en
-                  }
-                </Text>
-                <Text style={styles.percentage}>{result.percentages.eye}%</Text>
-              </View>
-
-              <View style={styles.traitCard}>
-                <Ionicons name="body" size={40} color="white" />
-                <Text style={[styles.traitLabel, language === 'ar' && styles.rtl]}>{t.skinTone}</Text>
-                <Text style={styles.traitValue}>
-                  {language === 'ar' 
-                    ? traitOptions.skin_tone.find(o => o.id === result.predicted_traits.skin_tone)?.ar
-                    : traitOptions.skin_tone.find(o => o.id === result.predicted_traits.skin_tone)?.en
-                  }
-                </Text>
-                <Text style={styles.percentage}>{result.percentages.skin}%</Text>
-              </View>
-
-              <View style={styles.traitCard}>
-                <Ionicons name="resize" size={40} color="white" />
-                <Text style={[styles.traitLabel, language === 'ar' && styles.rtl]}>{t.height}</Text>
-                <Text style={styles.traitValue}>
-                  {language === 'ar' 
-                    ? traitOptions.height.find(o => o.id === result.predicted_traits.height)?.ar
-                    : traitOptions.height.find(o => o.id === result.predicted_traits.height)?.en
-                  }
-                </Text>
-                <Text style={styles.percentage}>{result.percentages.height}%</Text>
-              </View>
-            </View>
-
-            <Text style={[styles.note, language === 'ar' && styles.rtl]}>
-              {t.note}
-            </Text>
-
-            <TouchableOpacity onPress={resetForm} style={styles.newPredictionButton}>
-              <Text style={[styles.newPredictionText, language === 'ar' && styles.rtl]}>
-                {t.newPrediction}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </LinearGradient>
+    const results = GeneticCalculator.calculateAll(
+      motherEye,
+      fatherEye,
+      motherHair,
+      fatherHair,
+      motherSkin,
+      fatherSkin,
+      mHeight,
+      fHeight,
+      childGender === 'male'
     );
-  }
+
+    navigation.navigate('TraitsResult', { results, language });
+  };
 
   return (
-    <LinearGradient colors={['#E0BBE4', '#957DAD', '#D291BC']} style={styles.container}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons
             name={language === 'ar' ? 'arrow-forward' : 'arrow-back'}
             size={24}
-            color="white"
+            color="#1F2937"
           />
         </TouchableOpacity>
 
-        <Text style={[styles.title, language === 'ar' && styles.rtl]}>{t.title}</Text>
-        <Text style={[styles.subtitle, language === 'ar' && styles.rtl]}>{t.subtitle}</Text>
-
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, language === 'ar' && styles.rtl]}>
-            {t.motherTraits}
-          </Text>
-          {Object.keys(traitOptions).map((trait) => (
-            <View key={`mother-${trait}`} style={styles.traitSelector}>
-              <Text style={[styles.traitSelectorLabel, language === 'ar' && styles.rtl]}>
-                {t[trait.replace('_', '')]}
-              </Text>
-              <View style={styles.optionsRow}>
-                {traitOptions[trait].map((option) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={[
-                      styles.optionButton,
-                      motherTraits[trait] === option.id && styles.optionButtonSelected,
-                    ]}
-                    onPress={() => updateMotherTrait(trait, option.id)}
-                  >
-                    <Text style={[styles.optionText, language === 'ar' && styles.rtl]}>
-                      {language === 'ar' ? option.ar : option.en}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          ))}
+        {/* Header Glass Card */}
+        <View style={styles.glassCard}>
+          <Text style={[styles.title, language === 'ar' && styles.rtl]}>{t.title}</Text>
+          <Text style={[styles.subtitle, language === 'ar' && styles.rtl]}>{t.subtitle}</Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, language === 'ar' && styles.rtl]}>
-            {t.fatherTraits}
-          </Text>
-          {Object.keys(traitOptions).map((trait) => (
-            <View key={`father-${trait}`} style={styles.traitSelector}>
-              <Text style={[styles.traitSelectorLabel, language === 'ar' && styles.rtl]}>
-                {t[trait.replace('_', '')]}
-              </Text>
-              <View style={styles.optionsRow}>
-                {traitOptions[trait].map((option) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={[
-                      styles.optionButton,
-                      fatherTraits[trait] === option.id && styles.optionButtonSelected,
-                    ]}
-                    onPress={() => updateFatherTrait(trait, option.id)}
-                  >
-                    <Text style={[styles.optionText, language === 'ar' && styles.rtl]}>
-                      {language === 'ar' ? option.ar : option.en}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          ))}
+        {/* Mother Traits */}
+        <View style={styles.sectionCard}>
+          <Text style={[styles.sectionTitle, language === 'ar' && styles.rtl]}>{t.motherTraits}</Text>
+
+          <Text style={[styles.label, language === 'ar' && styles.rtl]}>{t.eyeColor}</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={motherEye}
+              onValueChange={(value) => setMotherEye(value)}
+              style={styles.picker}
+            >
+              {eyeOptions.map((option) => (
+                <Picker.Item key={option} label={t.eyes[option]} value={option} />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={[styles.label, language === 'ar' && styles.rtl]}>{t.hairColor}</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={motherHair}
+              onValueChange={(value) => setMotherHair(value)}
+              style={styles.picker}
+            >
+              {hairOptions.map((option) => (
+                <Picker.Item key={option} label={t.hairs[option]} value={option} />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={[styles.label, language === 'ar' && styles.rtl]}>{t.skinTone}</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={motherSkin}
+              onValueChange={(value) => setMotherSkin(value)}
+              style={styles.picker}
+            >
+              {skinOptions.map((option) => (
+                <Picker.Item key={option} label={t.skins[option]} value={option} />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={[styles.label, language === 'ar' && styles.rtl]}>{t.height}</Text>
+          <TextInput
+            style={styles.input}
+            value={motherHeight}
+            onChangeText={setMotherHeight}
+            keyboardType="numeric"
+            placeholder="165"
+          />
         </View>
 
-        <TouchableOpacity
-          style={styles.calculateButton}
-          onPress={handleCalculate}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
+        {/* Father Traits */}
+        <View style={styles.sectionCard}>
+          <Text style={[styles.sectionTitle, language === 'ar' && styles.rtl]}>{t.fatherTraits}</Text>
+
+          <Text style={[styles.label, language === 'ar' && styles.rtl]}>{t.eyeColor}</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={fatherEye}
+              onValueChange={(value) => setFatherEye(value)}
+              style={styles.picker}
+            >
+              {eyeOptions.map((option) => (
+                <Picker.Item key={option} label={t.eyes[option]} value={option} />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={[styles.label, language === 'ar' && styles.rtl]}>{t.hairColor}</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={fatherHair}
+              onValueChange={(value) => setFatherHair(value)}
+              style={styles.picker}
+            >
+              {hairOptions.map((option) => (
+                <Picker.Item key={option} label={t.hairs[option]} value={option} />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={[styles.label, language === 'ar' && styles.rtl]}>{t.skinTone}</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={fatherSkin}
+              onValueChange={(value) => setFatherSkin(value)}
+              style={styles.picker}
+            >
+              {skinOptions.map((option) => (
+                <Picker.Item key={option} label={t.skins[option]} value={option} />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={[styles.label, language === 'ar' && styles.rtl]}>{t.height}</Text>
+          <TextInput
+            style={styles.input}
+            value={fatherHeight}
+            onChangeText={setFatherHeight}
+            keyboardType="numeric"
+            placeholder="175"
+          />
+        </View>
+
+        {/* Child Gender */}
+        <View style={styles.sectionCard}>
+          <Text style={[styles.sectionTitle, language === 'ar' && styles.rtl]}>{t.childGenderLabel}</Text>
+          <View style={styles.genderButtons}>
+            <TouchableOpacity
+              style={[
+                styles.genderButton,
+                childGender === 'male' && styles.genderButtonActive,
+              ]}
+              onPress={() => setChildGender('male')}
+            >
+              <Text
+                style={[
+                  styles.genderButtonText,
+                  childGender === 'male' && styles.genderButtonTextActive,
+                ]}
+              >
+                {t.male}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.genderButton,
+                childGender === 'female' && styles.genderButtonActive,
+              ]}
+              onPress={() => setChildGender('female')}
+            >
+              <Text
+                style={[
+                  styles.genderButtonText,
+                  childGender === 'female' && styles.genderButtonTextActive,
+                ]}
+              >
+                {t.female}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Calculate Button */}
+        <TouchableOpacity onPress={handleCalculate}>
+          <LinearGradient
+            colors={['#6C5CE7', '#FF7AB6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.calculateButton}
+          >
             <Text style={[styles.calculateButtonText, language === 'ar' && styles.rtl]}>
               {t.calculate}
             </Text>
-          )}
+          </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F3F6F9',
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 24,
+    padding: 18,
     paddingTop: 60,
   },
   backButton: {
-    marginBottom: 20,
+    marginBottom: 16,
     padding: 8,
   },
+  glassCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 8,
+    color: '#1F2937',
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 18,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
-    marginBottom: 24,
+    fontSize: 14,
+    color: '#6B7280',
   },
-  section: {
-    marginBottom: 24,
+  sectionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 4,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1F2937',
     marginBottom: 16,
   },
-  traitSelector: {
-    marginBottom: 20,
-  },
-  traitSelectorLabel: {
+  label: {
     fontSize: 16,
-    color: 'white',
+    color: '#1F2937',
+    marginTop: 12,
     marginBottom: 8,
   },
-  optionsRow: {
+  pickerContainer: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  picker: {
+    height: 50,
+  },
+  input: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 12,
+    fontSize: 16,
+    color: '#1F2937',
+  },
+  genderButtons: {
     flexDirection: 'row',
-    gap: 8,
-    flexWrap: 'wrap',
+    gap: 12,
   },
-  optionButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+  genderButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
   },
-  optionButtonSelected: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  genderButtonActive: {
+    backgroundColor: '#6C5CE7',
   },
-  optionText: {
-    fontSize: 14,
-    color: 'white',
-    fontWeight: '500',
+  genderButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  genderButtonTextActive: {
+    color: '#FFFFFF',
   },
   calculateButton: {
-    backgroundColor: 'white',
-    padding: 18,
-    borderRadius: 12,
+    padding: 16,
+    borderRadius: 14,
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 8,
+    shadowColor: '#6C5CE7',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   calculateButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#957DAD',
-  },
-  resultContainer: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  resultTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 32,
-  },
-  traitsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    justifyContent: 'center',
-    marginBottom: 32,
-  },
-  traitCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    padding: 20,
-    borderRadius: 16,
-    alignItems: 'center',
-    width: '45%',
-    minWidth: 140,
-  },
-  traitLabel: {
-    fontSize: 14,
-    color: 'white',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  traitValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 8,
-  },
-  percentage: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  note: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 24,
-  },
-  newPredictionButton: {
-    backgroundColor: 'white',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-  },
-  newPredictionText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#BA55D3',
+    color: '#FFFFFF',
   },
   rtl: {
     writingDirection: 'rtl',

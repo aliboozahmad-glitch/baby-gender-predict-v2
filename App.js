@@ -6,6 +6,8 @@ import GenderPredictionScreen from './screens/GenderPredictionScreen';
 import GeneticDiseasesScreen from './screens/GeneticDiseasesScreen';
 import DiseaseDetailScreen from './screens/DiseaseDetailScreen';
 import TraitsScreen from './screens/TraitsScreen';
+import TraitsResultScreen from './screens/TraitsResultScreen';
+import TraitsSourcesScreen from './screens/TraitsSourcesScreen';
 
 const Stack = createStackNavigator();
 
@@ -22,6 +24,8 @@ export default function App() {
         <Stack.Screen name="GeneticDiseases" component={GeneticDiseasesScreen} />
         <Stack.Screen name="DiseaseDetail" component={DiseaseDetailScreen} />
         <Stack.Screen name="Traits" component={TraitsScreen} />
+        <Stack.Screen name="TraitsResult" component={TraitsResultScreen} />
+        <Stack.Screen name="TraitsSources" component={TraitsSourcesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
